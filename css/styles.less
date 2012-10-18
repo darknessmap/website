@@ -1,0 +1,153 @@
+/* color constants */
+@green: #a4a400;
+@gray: #0A0A0A;
+@grayWhite: #ddd;
+@darkGray: #1e1e1e;
+@darkGreen: #404000;
+@mapBackground:#424242;
+@grayWhite2: #ededed;
+@green2: #b2b200;
+
+@headerBottom: #313131;
+/* color variables */
+/* use when to make style sets */
+@color1: @green;
+@color2: @grayWhite;
+@color3: @darkGreen;
+@color4: @grayWhite2;
+@color5: @green2;
+@color6: @mapBackground;
+
+@background1: @gray;
+@background2: @darkGray;
+
+/* font variables */
+.openSans {
+	font-family: 'Open Sans', verdana, sans-serif;
+	font-weight: 400;
+}
+.openSans-bold {
+	font-family: 'Open Sans', verdana, sans-serif;
+	font-weight: 700;
+}
+.openSans-light {
+	font-family: 'Open Sans', verdana, sans-serif;
+	font-weight: 300;
+}
+.openSans-semibold {
+	font-family: 'Open Sans', verdana, sans-serif;
+	font-weight: 600;
+}
+/* other variables / constants */
+@radius: 5px;
+
+.dM .button {
+	background-color: @color1;
+	border-color: @color3;
+}
+
+/* shadows */
+.shadow {
+	color: black;
+	display: block;
+	position: relative;
+	.openSans-bold;
+}
+.shadow:before, .shadow:after {
+	color: rgba(0, 0, 0, 0.06);
+	content: attr(title);
+	position: absolute;
+}
+.shadow:after {
+	left: 26px;
+	top: 1px;
+}
+.shadow:before {
+	left: 24px;
+	top: -1px;
+}
+/* page styles */
+/* -----------------------------------------
+   Page SHARED
+----------------------------------------- */
+/* foundation tune */
+.button.radius { -webkit-border-radius: @radius; -moz-border-radius: @radius; -ms-border-radius: @radius; -o-border-radius: @radius; border-radius: @radius; }
+/* main nav */
+.contain-to-grid,
+.dM nav.top-bar{
+	background-color:@gray;
+}
+.dM nav.top-bar a {
+	.openSans;	
+	color: @color4;
+}
+.dM nav.top-bar a.active {
+	.openSans-bold;
+}
+
+/* darknessmap */
+.dM .darknessmap {
+	background-color:@color6;
+}
+/* header */
+.dM header {
+	width:100% !important;
+	background-color: @color6;
+	border-bottom: 1px solid @headerBottom;
+
+	h1 {
+		.openSans-bold;
+		color: @color1;
+		font-size: 40px;
+		margin-bottom: 0;
+	}
+	h1 > span {
+		color:@color5;
+	}
+	p {
+		.openSans-light;
+		color: @color2;
+		font-size: 30px;
+	}
+}
+/* content */
+.dM #content {
+	background-color: @background1;
+}
+ /* main content */
+.dM .content .mainContent h3 {
+	.openSans-semibold;
+	font-size: 16px;
+	line-height: 1.2;
+	color: @color5;
+}
+.dM .content .mainContent h3 a {
+	color: @color5;
+}
+
+.dM .content .mainContent p {
+	color: @color2;
+	.openSans;
+}
+
+/* buttons */
+.dM .button {		
+	font-size: 26px;
+	height: 44px;
+	position: relative;
+	top: -22px;
+	padding-top: 7px;
+	width: 269px;
+	padding-left: 10px;
+}
+.dM .button a {
+	color: @grayWhite;	
+	.openSans-semibold;
+	text-align: none;
+}
+/* -----------------------------------------
+   Page INDEX
+----------------------------------------- */
+.dM {
+	background-color: @background1;
+}

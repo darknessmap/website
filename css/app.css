@@ -1,0 +1,93 @@
+/* Artfully masterminded by ZURB  */
+
+/* -------------------------------------------------- 
+   Table of Contents
+-----------------------------------------------------
+:: Shared Styles
+:: Page INDEX
+:: Page Name 2
+*/
+
+.leaflet-control-attribution{
+	visibility: hidden;
+}
+/* -----------------------------------------
+   Shared Styles
+----------------------------------------- */
+/* foundation tune */
+.row .row {
+	margin: 0;
+}
+
+
+/* MAIN NAV */
+.dM .row {
+	width: 1024px;
+}
+
+.dM .row .fluid{
+	width:100% !important;
+}
+
+.dM .top-bar {
+	height: 63px;
+	padding-right: 26px;
+}
+.dM .top-bar ul li a {
+	font-size: 16px;
+	font-family: arial, sans-serif;
+	line-height: 1.2;
+	font-weight: normal;
+	padding-top: 20px;
+	padding-bottom: 43px;
+}
+.dM h1 {
+	line-height: 1.2;
+	letter-spacing:-2.2px;
+	font-weight: normal;
+}
+
+.dM header p {
+	line-height: 1.01;
+}
+
+/* -----------------------------------------
+   Page INDEX
+----------------------------------------- */
+/*.dM .header-wrapper{
+	position:relative;
+	height: 480px;
+}
+.dM header,
+.dm .darknessmap,
+.dM .download-holder{
+	position:absolute;
+	width:100%;
+	height:100%;
+}*/
+.dm header {
+	z-index: 11;
+}
+.dm .download-holder{
+	z-index: 10;
+}
+
+.dM header {
+	height: 488px;
+}
+.dM header div {
+	margin-top: 140px;
+	margin-left: 40px;
+}
+.dM .content .button {
+	margin-left: 78px;
+}
+.dM .mainContent {
+	height: 490px;
+	margin-top: 50px;
+}
+/* -----------------------------------------
+   Page Name 2
+----------------------------------------- */
+
+
