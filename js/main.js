@@ -56,10 +56,13 @@ $(document).ready(function() {
 
     socket.on('darkness',function(data){
         console.log('on darkness: ', data);
+        // D.onData(data);
     });
 
     socket.on('darknessUpdate',function(data){
         console.log('on darkness update',data);
+        var item = $.parseJSON(data);
+        D.addItem(item);
     });
 
     socket.on('userUpdate', function (data) {
@@ -202,14 +205,16 @@ DarknessMap.prototype.unsubscribe = o.unsubscribe;
 
 D.onData = function(data){
 	var item;
-    
-    data = $.parseJSON(data);
 
-    item = data[500];
+	//FF will send string, while webkitters do a propper obj.
+    if(typeof data === 'string') data = $.parseJSON(data);
+
+    item = data[2];
 
     D.throttle(data, D.addItem, D, 30);
 
-    D.map.setView([37.78089, -122.41443],15);
+    //D.map.setView([37.78089, -122.41443],15);
+     D.map.setView([37.887335736305,-122.26300486363],15);
 };
 function adjustBrightness(rgb, brite) {
     var r = Math.max(Math.min(((rgb >> 16) & 0xFF) + brite, 255), 0);
