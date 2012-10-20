@@ -1,11 +1,41 @@
 $(document).ready(function() {
     console.log('--------Go');
-    D.map = L.map('map').setView([40.78678, -73.96957], 15);
+    D.map = L.map('map').setView([37.78089, -122.41443], 13);
 
-    L.tileLayer('http://localhost:2323/{z}/{x}/{y}.png', {
-        maxZoom: 17,
-        minZoom: 14
-    }).addTo(D.map);
+    D.map.on('mousedown',function(e){
+        // $('.logo').hide();
+        $('#map').css({height:'100%', 'z-index':99999});
+        D.map.invalidateSize(false)//.panTo(e.latlng);
+        //we should remove this now.
+    });
+
+    D.map.on('blur', function(){
+        // $('.logo').show();
+    });
+
+    /*
+    var popup = L.popup();
+
+	function onMapClick(e) {
+		console.log("You clicked the map at " + e.latlng);
+	    popup
+	        .setLatLng(e.latlng)
+	        .setContent("You clicked the map at " + e.latlng.toString())
+	        .openOn(D.map);
+	}
+
+	D.map.on('click', onMapClick);
+	*/
+	//topleft:37.95276, -122.59631
+    var maxBounds = [[37.6694, -122.5882],[37.9498, -122.0814]];
+    // 1350617638000
+    var mapConfig = {
+    	maxZoom:17,
+    	minZoom:14,
+    	maxBounds:maxBounds
+    };
+    L.tileLayer('http://darknessmap.com/tiles/sf/{z}/{x}/{y}.png', mapConfig).addTo(D.map);
+
 
     //WANT TO LOAD API:
     var ajax = {
@@ -56,6 +86,33 @@ var DarknessMap = function(config){
 	this.socketUrl = this.stringReplace(config.socketUrl, config);
 };
 
+DarknessMap.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, targetStr, targetEnd)
+{
+    var baseRangeFull = rangeEnd - rangeStr;
+    var baseFinalValue, targetCurrentValue;
+        
+    if (baseRangeFull === 0)
+    {
+        baseFinalValue = 1;
+    }
+    else
+    {
+        baseFinalValue = (Math.min (Math.max ((value - rangeStr) / baseRangeFull, 0.0), 1.0));
+    }
+             
+    targetCurrentValue = (targetStr + ((targetEnd - targetStr) * baseFinalValue));
+    return targetCurrentValue;
+};
+             
+ 
+DarknessMap.prototype.adjustBrightness = function(rgb, brite) {
+    var r = Math.max(Math.min(((rgb >> 16) & 0xFF) + brite, 255), 0);
+    var g = Math.max(Math.min(((rgb >> 8) & 0xFF) + brite, 255), 0);
+    var b = Math.max(Math.min((rgb & 0xFF) + brite, 255), 0);
+    
+    return (r << 16) | (g << 8) | b;
+};
+
 DarknessMap.prototype.stringReplace =function(template, data){
     function replaceFn() {
         var prop = arguments[1];
@@ -65,7 +122,7 @@ DarknessMap.prototype.stringReplace =function(template, data){
 };
 
 DarknessMap.prototype.initialize = function(){
-	this.map = L.map('map').setView([40.78678, -73.96957], 15);
+	this.map = L.map('map').setView([37.78089, -122.41443], 15);
 
 	L.tileLayer(this.tileUrl, {
         maxZoom: 17,
@@ -92,11 +149,16 @@ DarknessMap.prototype.onAPIData = function(data){
     //this.map.setView([item.loc.lat, item.loc.lon],15);
 };
 DarknessMap.prototype.addItem = function(item){
-	L.circle([item.loc.lat, item.loc.lon], 10, {
+	var loc = item.loc;
+	var radius = this.simpleInterpolation(item.payload, 0, 255, 8, 32);
+	var opacity = 1 - this.simpleInterpolation(item.payload, 0,255,0.2,1);
+	L.circle([loc.lat, loc.lon], radius, {
         color: 'none',
-        fillColor: '#B2B200',
-        fillOpacity: (item.payload / 255)
-    }).addTo(D.map);
+        stroke:false,
+        clickable:false,
+        fillColor:'#'+this.adjustBrightness('0x323232',item.payload).toString(16),
+        fillOpacity: opacity
+    }).addTo(this.map);
 };
 
 DarknessMap.prototype.onError = function(e){
@@ -143,18 +205,49 @@ D.onData = function(data){
     
     data = $.parseJSON(data);
 
-    item = data[100];
+    item = data[500];
 
     D.throttle(data, D.addItem, D, 30);
 
-    D.map.setView([item.loc.lat, item.loc.lon],15);
+    D.map.setView([37.78089, -122.41443],15);
 };
+function adjustBrightness(rgb, brite) {
+    var r = Math.max(Math.min(((rgb >> 16) & 0xFF) + brite, 255), 0);
+    var g = Math.max(Math.min(((rgb >> 8) & 0xFF) + brite, 255), 0);
+    var b = Math.max(Math.min((rgb & 0xFF) + brite, 255), 0);
+    
+    return (r << 16) | (g << 8) | b;
+}
+
+
+function simpleInterpolation(value, rangeStr, rangeEnd, targetStr, targetEnd)
+{
+    var baseRangeFull = rangeEnd - rangeStr;
+    var baseFinalValue, targetCurrentValue;
+        
+    if (baseRangeFull === 0)
+    {
+        baseFinalValue = 1;
+    }
+    else
+    {
+        baseFinalValue = (Math.min (Math.max ((value - rangeStr) / baseRangeFull, 0.0), 1.0));
+    }
+             
+    targetCurrentValue = (targetStr + ((targetEnd - targetStr) * baseFinalValue));
+    return targetCurrentValue;
+}
 
 D.addItem = function(item){
-	L.circle([item.loc.lat, item.loc.lon], 10, {
+	var loc = item.loc;
+	var radius = simpleInterpolation(item.payload, 0, 255, 8, 32);
+	var opacity = 1 - simpleInterpolation(item.payload, 0,255,0.2,1);
+	L.circle([loc.lat, loc.lon], radius, {
         color: 'none',
-        fillColor: '#B2B200',
-        fillOpacity: (item.payload / 255)
+        stroke:false,
+        clickable:false,
+        fillColor:'#'+adjustBrightness('0x0',item.payload).toString(16),
+        fillOpacity: opacity
     }).addTo(D.map);//.bindPopup("I am a circle.");
 }
 
