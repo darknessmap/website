@@ -1,5 +1,6 @@
 $(document).ready(function() {
-    console.log('--------Go');
+    console.log('--------Go!!!!!');
+    /*
     D.map = L.map('map').setView([37.78089, -122.41443], 13);
 
     D.map.on('mousedown',function(e){
@@ -25,68 +26,204 @@ $(document).ready(function() {
 	}
 
 	D.map.on('click', onMapClick);
-	*/
-	//topleft:37.95276, -122.59631
-    var maxBounds = [[37.6694, -122.5882],[37.9498, -122.0814]];
-    // 1350617638000
-    var mapConfig = {
-    	maxZoom:17,
-    	minZoom:14,
-    	maxBounds:maxBounds
-    };
-    L.tileLayer('http://darknessmap.com/tiles/sf/{z}/{x}/{y}.png', mapConfig).addTo(D.map);
+    
+*/
+	D.initialize();
+	//We could prob. just use socket instead of
+	//direct request.
+	D.doAPIRequest();
 
+	D.initializeSocket();
 
-    //WANT TO LOAD API:
-    var ajax = {
-        url:'http://178.79.145.84:8080/api/darkness',
-        type:'GET',
-        success:D.onData,
-        error:function(){
-            console.log('oh oh!');
-        }
-    };
-    $.ajax(ajax);
+	//TODO: Find the right events.
+	D.activityOn();
 
+	D.subscribe('onActive', C.proxy(C.onMapActive));
+	D.subscribe('onInactive', C.proxy(C.onMapInactive));
     //
-    var socket = io.connect('http://178.79.145.84:8080');
-    socket.on('sign', function(state){
-        console.log('on sign udpate');
-    });
-
-    socket.on('darkness',function(data){
-        console.log('on darkness: ', data);
-        // D.onData(data);
-    });
-
-    socket.on('darknessUpdate',function(data){
-        console.log('on darkness update',data);
-        var item = $.parseJSON(data);
-        D.addItem(item);
-    });
-
-    socket.on('userUpdate', function (data) {
-        console.log('on connected ',data);
-        socket.emit('my other event', { my: 'data' });
-    });
-    socket.emit('adduser','peperone_'+new Date().valueOf());
+   
 });
-D = {};
 
+//TODO: Load config file.
 var config = {
 	apiDomain:"178.79.145.84:8080",
-	apiUrl:'http://{apiDomain}/api/darkness',
-	tileDomain:'localhost:2323',
-	tileUrl:'http://{tileDomain}/{z}/{x}/{y}.png',
-	socketUrl:'http://{apiDomain}'
+	apiUrl:'http://{{apiDomain}}/api/darkness',
+	tileDomain:'darknessmap.com/tiles/sf',
+	tileUrl:'http://{{tileDomain}}/{z}/{x}/{y}.png',
+	socketUrl:'http://{{apiDomain}}',
+	throttle:30,
+	fillColor:'0x0',
+	baseUserName:'darko_',
+	map:{
+		id:"map",
+        layer:{
+            maxZoom:17,
+            minZoom:14,
+            maxBounds:[[37.6694, -122.5882],[37.9498, -122.0814]]
+        },
+        initZoom:15,
+        initPos:[37.887335736305,-122.26300486363]
+	}
 };
 
-var DarknessMap = function(config){
+var DarknessMap = function DarknessMap(config){
 	this.config   = config;
+	this.appName  = "DarknessMap";
+};
 
-	this.apiUrl  = this.stringReplace(config.apiUrl, config);
-	this.tileUrl = this.stringReplace(config.tileUrl, config);
+
+
+DarknessMap.prototype.initialize = function(){
+	this.log("Initialize");
+
+	var config = this.config;
+
+	this.apiUrl    = this.stringReplace(config.apiUrl, config);
+	this.tileUrl   = this.stringReplace(config.tileUrl, config);
 	this.socketUrl = this.stringReplace(config.socketUrl, config);
+
+	this.log("API URL: ", this.apiUrl);
+	this.log("TILE URL: ", this.tileUrl);
+	this.log("SOCKET URL: ", this.socketUrl);
+
+	config   = config.map;
+	this.map = L.map(config.id).setView(config.initPos, config.initZoom);
+
+	L.tileLayer(this.tileUrl, config.layer).addTo(this.map);
+};
+
+DarknessMap.prototype.initializeSocket = function(){
+
+	//Let create our socket connection.
+	this.socket = io.connect( this.socketUrl );
+
+    this.addSocketListener('sign', this.onSign);
+
+    this.addSocketListener('darkness', this.onDarkness );
+
+    this.addSocketListener('darknessUpdate',this.onDarknessUpdate);
+
+    this.addSocketListener('userUpdate', this.onUserUpdate);
+
+    //Notify that we are connected!
+    this.socket.emit('adduser',this.generateUsername());
+};
+
+DarknessMap.prototype.addSocketListener = function(topic, method){
+	this.socket.on(topic, this.proxy(method));
+};
+///////////
+//SOCKET.IO
+///////////
+DarknessMap.prototype.onSign = function(state){
+	this.log("signed data, ", state);
+	this.connected = state;
+};
+DarknessMap.prototype.onDarkness = function(data){
+    console.log('on darkness: ');
+    // D.onData(data);
+};
+
+
+DarknessMap.prototype.onDarknessUpdate = function(data){
+    console.log('on darkness update',data);
+    var item = $.parseJSON(data);
+    // D.addItem(item);
+};
+
+DarknessMap.prototype.onUserUpdate = function (data) {
+    console.log('on connected ',data);
+    //this.socket.emit('my other event', { my: 'data' });
+};
+
+//TODO: Include pagination to data pull. Also, feed in a loc, and
+//		query near items, so we don't get all the mdb.
+DarknessMap.prototype.doAPIRequest = function doAPIRequest(page, size){
+	this.log(" make api request");
+	var ajax = {
+        url:this.apiUrl,
+        type:'GET',
+        error:this.proxy(this.onError),
+        success:this.proxy(this.onAPIData)
+    };
+    $.ajax(ajax);
+};
+
+DarknessMap.prototype.onAPIData = function onAPIData(data){
+    //Make object from server's response.
+    if(!data) return this.onError();
+    
+    //FF returns str, webkitlings obj.
+    if(typeof data === 'string')
+        data = $.parseJSON(data);
+
+    this.log("We have data, total: ", data.length);
+
+    //Throttle data rendering, dont choke the browser:
+    DarknessMap.throttle(data, this.addItem, this, this.config.throttle);
+};
+
+DarknessMap.prototype.addItem = function(item){
+	//TODO: Merge config object.
+	this.color || (this.color = this.config.fillColor);
+    var loc = item.loc;
+	var radius  = this.simpleInterpolation(item.payload, 0, 255, 8, 32);
+	var opacity = 1 - this.simpleInterpolation(item.payload, 0,255,0.2,1);
+	L.circle([loc.lat, loc.lon], radius, {
+        color: 'none',
+        stroke:false,
+        clickable:false,
+        fillColor:'#'+this.adjustBrightness(this.color,item.payload).toString(16),
+        fillOpacity: opacity
+    }).addTo(this.map);
+};
+
+DarknessMap.prototype.onError = function(e){
+	//TODO: Implement log error system.
+	this.log(e);
+};
+
+////////////////
+//VIEW HANDLING
+////////////////
+DarknessMap.prototype.activityOn = function(){
+	this.log('on activity on');
+
+	var activityHandler = function(){
+		D.log('onActivityHandler');
+		D.map.on('blur', registerHandler);
+		D.map.off('mousedown', activityHandler);
+		D.publish('onActive');
+	};
+
+	var registerHandler = function(){
+		D.log('onRegisterHandler');
+		D.map.off('blur', registerHandler);
+		D.map.on('mousedown', activityHandler);
+		D.publish('onInactive');
+	};
+	// D.map.on('mousedown', activityHandler);
+	registerHandler();
+};
+
+
+DarknessMap.prototype.log = function(){
+	console.log.apply(console, [this.appName+":"+arguments.callee.caller.name].concat(Array.prototype.slice.call(arguments,0)));
+};
+
+DarknessMap.throttle = function(array, process, context, index){
+    setTimeout(function(){
+        var item, i = index;
+        while( i-- ) {
+            item = array.shift();
+            item && process.call(context, item);
+        }
+        
+        if(array.length > 0){
+            DarknessMap.throttle.call(this, array, process, context, index);
+        }
+        
+    }, 20);
 };
 
 DarknessMap.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, targetStr, targetEnd)
@@ -94,10 +231,7 @@ DarknessMap.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, 
     var baseRangeFull = rangeEnd - rangeStr;
     var baseFinalValue, targetCurrentValue;
         
-    if (baseRangeFull === 0)
-    {
-        baseFinalValue = 1;
-    }
+    if (baseRangeFull === 0) baseFinalValue = 1;
     else
     {
         baseFinalValue = (Math.min (Math.max ((value - rangeStr) / baseRangeFull, 0.0), 1.0));
@@ -121,153 +255,82 @@ DarknessMap.prototype.stringReplace =function(template, data){
         var prop = arguments[1];
         return (prop in data) ? data[prop] : '';
     }
-    return template.replace(/\{(\w+)\}/g, replaceFn);
+    //TODO: Make marker chars optional.
+    var  matcher = new RegExp("\\{\\{(\\w+)\\}\\}","g");
+    return template.replace(matcher, replaceFn);
+    // return template.replace(/\{\{(\w+)\}\}/g, replaceFn);
 };
 
-DarknessMap.prototype.initialize = function(){
-	this.map = L.map('map').setView([37.78089, -122.41443], 15);
-
-	L.tileLayer(this.tileUrl, {
-        maxZoom: 17,
-        minZoom: 15
-    }).addTo(D.map);
+//TODO: Implement gClass inheritance, and mixin
+//pub sub.
+DarknessMap.prototype.proxy = function(func){
+	var self = this;
+	return(function(){
+		return func.apply(self, arguments);
+	});
 };
 
-DarknessMap.prototype.doAPIRequest = function(){
-	var ajax = {
-        url:this.apiUrl,
-        type:'GET',
-        success:this.onData,
-        error:this.onError
-    };
-    $.ajax(ajax);
+DarknessMap.prototype.generateUsername = function(){
+	return this.config.baseUserName + new Date().valueOf();
 };
 
-DarknessMap.prototype.onAPIData = function(data){
-    //Make object from server's response.
-    data = $.parseJSON(data);
+var pubSub = function(Instance){
+	var o = $({});
+	o.subscribe = function() {
+		o.on.apply(o, arguments);
+	};
 
-    this.throttle(data, this.addItem, this, 30);
-    //We should setup the map pos.
-    //this.map.setView([item.loc.lat, item.loc.lon],15);
-};
-DarknessMap.prototype.addItem = function(item){
-	var loc = item.loc;
-	var radius = this.simpleInterpolation(item.payload, 0, 255, 8, 32);
-	var opacity = 1 - this.simpleInterpolation(item.payload, 0,255,0.2,1);
-	L.circle([loc.lat, loc.lon], radius, {
-        color: 'none',
-        stroke:false,
-        clickable:false,
-        fillColor:'#'+this.adjustBrightness('0x323232',item.payload).toString(16),
-        fillOpacity: opacity
-    }).addTo(this.map);
-};
+	o.unsubscribe = function() {
+		o.off.apply(o, arguments);
+	};
 
-DarknessMap.prototype.onError = function(e){
-	//TODO: Implement log error system.
+	o.publish = function() {
+		o.trigger.apply(o, arguments);
+	};
 
+	Instance.pubsub = o;
+	Instance.prototype.publish     = o.publish;
+	Instance.prototype.subscribe   = o.subscribe;
+	Instance.prototype.unsubscribe = o.unsubscribe;
 };
 
-DarknessMap.prototype.throttle = function(array, process, context, index){
-    setTimeout(function(){
-        var item, i = index;
-        while( i-- ) {
-            item = array.shift();
-            item && process.call(context, item);
-        }
-        
-        if(array.length > 0){
-            arguments.callee.call(this, array, process, context, index);
-        }
-        
-    }, 20);
+
+
+
+
+//App should initialize Map, then hookup controller and
+//views. We take one step at a time, and refactor.
+//The goal is there, just follow through.
+var D = new DarknessMap(config);
+
+//
+var SiteController = function(){
+	this.className = 'SiteController';
+};
+SiteController.prototype.onMapActive = function onMapActive(){
+	this.log(' make map full size');
+	$('#map').css({height:'100%', 'z-index':99999});
+    D.map.invalidateSize(false);//.panTo(e.latlng);
 };
 
-var o = $({});
-o.subscribe = function() {
-	o.on.apply(o, arguments);
+SiteController.prototype.onMapInactive = function onMapInactive(){
+	this.log(' make map regular size');
+	$('#map').css({height:'480px','z-index':0});
+	D.map.invalidateSize(false);
 };
 
-o.unsubscribe = function() {
-	o.off.apply(o, arguments);
+//Common methods, inherit!!
+SiteController.prototype.log = function(){
+	console.log.apply(console, [this.className+":"+arguments.callee.caller.name].concat(Array.prototype.slice.call(arguments,0)));
 };
-
-o.publish = function() {
-	o.trigger.apply(o, arguments);
+SiteController.prototype.proxy = function(func){
+	var self = this;
+	return(function(){
+		return func.apply(self, arguments);
+	});
 };
+var C = new SiteController();
 
-DarknessMap.pubSub = o;
-
-DarknessMap.prototype.publish = o.publish;
-DarknessMap.prototype.subscribe = o.subscribe;
-DarknessMap.prototype.unsubscribe = o.unsubscribe;
-
-D.onData = function(data){
-	var item;
-
-	//FF will send string, while webkitters do a propper obj.
-    if(typeof data === 'string') data = $.parseJSON(data);
-
-    item = data[2];
-
-    D.throttle(data, D.addItem, D, 30);
-
-    //D.map.setView([37.78089, -122.41443],15);
-     D.map.setView([37.887335736305,-122.26300486363],15);
-};
-function adjustBrightness(rgb, brite) {
-    var r = Math.max(Math.min(((rgb >> 16) & 0xFF) + brite, 255), 0);
-    var g = Math.max(Math.min(((rgb >> 8) & 0xFF) + brite, 255), 0);
-    var b = Math.max(Math.min((rgb & 0xFF) + brite, 255), 0);
-    
-    return (r << 16) | (g << 8) | b;
-}
-
-
-function simpleInterpolation(value, rangeStr, rangeEnd, targetStr, targetEnd)
-{
-    var baseRangeFull = rangeEnd - rangeStr;
-    var baseFinalValue, targetCurrentValue;
-        
-    if (baseRangeFull === 0)
-    {
-        baseFinalValue = 1;
-    }
-    else
-    {
-        baseFinalValue = (Math.min (Math.max ((value - rangeStr) / baseRangeFull, 0.0), 1.0));
-    }
-             
-    targetCurrentValue = (targetStr + ((targetEnd - targetStr) * baseFinalValue));
-    return targetCurrentValue;
-}
-
-D.addItem = function(item){
-	var loc = item.loc;
-	var radius = simpleInterpolation(item.payload, 0, 255, 8, 32);
-	var opacity = 1 - simpleInterpolation(item.payload, 0,255,0.2,1);
-	L.circle([loc.lat, loc.lon], radius, {
-        color: 'none',
-        stroke:false,
-        clickable:false,
-        fillColor:'#'+adjustBrightness('0x0',item.payload).toString(16),
-        fillOpacity: opacity
-    }).addTo(D.map);//.bindPopup("I am a circle.");
-}
-
-D.throttle = function(array, process, context, index){
-    setTimeout(function(){
-        var item, i = index;
-        while( i-- ) {
-            item = array.shift();
-            item && process.call(context, item);
-            //context[process].call(context,item);
-        }
-        
-        if(array.length > 0){
-            D.throttle.call(D, array, process, context, index);
-        }
-        
-    }, 20);
-};
+//Make classes dispatchers.
+pubSub(DarknessMap);
+pubSub(SiteController);
