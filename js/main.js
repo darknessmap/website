@@ -1,18 +1,7 @@
 $(document).ready(function() {
     console.log('--------Go!!!!!');
     /*
-    D.map = L.map('map').setView([37.78089, -122.41443], 13);
-
-    D.map.on('mousedown',function(e){
-        // $('.logo').hide();
-        $('#map').css({height:'100%', 'z-index':99999});
-        D.map.invalidateSize(false)//.panTo(e.latlng);
-        //we should remove this now.
-    });
-
-    D.map.on('blur', function(){
-        // $('.logo').show();
-    });
+    
 
     /*
     var popup = L.popup();
@@ -38,12 +27,12 @@ $(document).ready(function() {
 	//TODO: Find the right events.
 	D.activityOn();
 
-	D.subscribe('onActive', C.proxy(C.onMapActive));
+	D.subscribe('onActive',   C.proxy(C.onMapActive));
 	D.subscribe('onInactive', C.proxy(C.onMapInactive));
     //
    
 });
-
+ 
 //TODO: Load config file.
 var config = {
 	apiDomain:"178.79.145.84:8080",
@@ -212,6 +201,7 @@ DarknessMap.prototype.log = function(){
 };
 
 DarknessMap.throttle = function(array, process, context, index){
+	var buffer = DarknessMap.throttle.buffer;
     setTimeout(function(){
         var item, i = index;
         while( i-- ) {
@@ -223,8 +213,9 @@ DarknessMap.throttle = function(array, process, context, index){
             DarknessMap.throttle.call(this, array, process, context, index);
         }
         
-    }, 20);
+    }, buffer);
 };
+DarknessMap.throttle.buffer = 40;
 
 DarknessMap.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, targetStr, targetEnd)
 {
@@ -309,6 +300,7 @@ var SiteController = function(){
 };
 SiteController.prototype.onMapActive = function onMapActive(){
 	this.log(' make map full size');
+	//
 	$('#map').css({height:'100%', 'z-index':99999});
     D.map.invalidateSize(false);//.panTo(e.latlng);
 };
