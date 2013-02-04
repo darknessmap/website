@@ -102,6 +102,9 @@
 .top-bar ul > li:hover, .top-bar ul > li.active{
 	border-top: 1px solid #b2b200;
 }
+.top-bar ul > li{
+	border-top: 1px solid #000;
+}
 /* -----------------------------------------
    Page Name 2
 ----------------------------------------- */
