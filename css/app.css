@@ -8,9 +8,15 @@
 :: Page Name 2
 */
 
+/* -----------------------------------------
+   Leaflet Overrides & Styles
+----------------------------------------- */
 .leaflet-control-attribution{
 	visibility: hidden;
 }
+.leaflet-control-zoom-fullscreen { background-image: url(../images/icon-fullscreen.png); }
+.leaflet-control-zoom-fullscreen.last { margin-top: 5px; }
+
 /* -----------------------------------------
    Shared Styles
 ----------------------------------------- */
@@ -85,6 +91,10 @@
 .dM .mainContent {
 	height: 490px;
 	margin-top: 50px;
+}
+
+.dM .fixed-ghost{
+	height:50px;
 }
 /* -----------------------------------------
    Page Name 2
