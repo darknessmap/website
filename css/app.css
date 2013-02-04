@@ -38,6 +38,7 @@
 .dM .top-bar {
 	height: 63px;
 	padding-right: 26px;
+	float: right;
 }
 .dM .top-bar ul li a {
 	font-size: 16px;
@@ -89,12 +90,17 @@
 	margin-left: 78px;
 }
 .dM .mainContent {
-	height: 490px;
+	/*height: 490px;*/
 	margin-top: 50px;
 }
 
 .dM .fixed-ghost{
 	height:50px;
+}
+
+/*Active top menu item*/
+.top-bar ul > li:hover, .top-bar ul > li.active{
+	border-top: 1px solid #b2b200;
 }
 /* -----------------------------------------
    Page Name 2

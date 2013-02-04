@@ -24,6 +24,9 @@ $(document).ready(function() {
     C.initialize();
 
     D.initialize();
+
+    M.initialize();
+
     //We could prob. just use socket instead of
     //direct request.
     D.doAPIRequest();
@@ -36,53 +39,7 @@ $(document).ready(function() {
     // D.subscribe('onActive',   C.proxy(C.onMapActive));
     // D.subscribe('onInactive', C.proxy(C.onMapInactive));
     //
-   /*************************************/
-   // Cache selectors
-    var lastId,
-        topMenu = $('#top-menu'),
-        topMenuHeight = topMenu.outerHeight()+15,
-        // All list items
-        menuItems = topMenu.find('a'),
-        // Anchors corresponding to menu items
-        scrollItems = menuItems.map(function(){
-            var item = $($(this).attr('href'));
-            if (item.length) { return item; }
-        });
-
-    // Bind click handler to menu items
-    // so we can get a fancy scroll animation
-    menuItems.click(function(e){
-      var href = $(this).attr('href'),
-          offsetTop = href === '#' ? 0 : $(href).offset().top-topMenuHeight+1;
-      $('html, body').stop().animate({ 
-          scrollTop: offsetTop
-      }, 300);
-      e.preventDefault();
-    });
-
-    // Bind to scroll
-    $(window).scroll(function(){
-       // Get container scroll position
-       var fromTop = $(this).scrollTop()+topMenuHeight;
-       
-       // Get id of current scroll item
-       var cur = scrollItems.map(function(){
-         if ($(this).offset().top < fromTop)
-           return this;
-       });
-       // Get the id of the current element
-       cur = cur[cur.length-1];
-       var id = cur && cur.length ? cur[0].id : '';
-       
-       if (lastId !== id) {
-           lastId = id;
-           // Set/remove active class
-           menuItems
-             .parent().removeClass('active')
-             .end().filter('[href=#'+id+']').parent().addClass('active');
-        }
-    });
-   /*************************************/
+   
 });
  
  //D.map = L.map('map').setView([37.78089, -122.41443], 13);
@@ -399,7 +356,70 @@ SiteController.prototype.proxy = function(func){
         return func.apply(self, arguments);
     });
 };
+
+var MenuController = function(){
+
+    };
+
+MenuController.prototype.initialize = function(){
+    this.lastId = null;
+    this.topMenu = $('#top-menu');
+    this.topMenuHeight = this.topMenu.outerHeight() + 15;
+
+    // All list items
+    this.menuItems = this.topMenu.find('a');
+
+    // Anchors corresponding to menu items
+    this.scrollItems = this.menuItems.map(function(){
+        var item = $($(this).attr('href'));
+        if (item.length) { return item; }
+    });
+
+    var self = this;
+    // Bind click handler to menu items
+    // so we can get a fancy scroll animation
+    this.menuItems.click(function(e){
+        var href = $(this).attr('href');
+        var offsetTop = href === '#' ? 0 : $(href).offset().top - self.topMenuHeight + 1;
+
+        $('html, body').stop().animate({
+            scrollTop: offsetTop
+        }, 300);
+
+        e.preventDefault();
+    });
+
+    //Attach the window scroll handler!
+    var scrollHandler = $.proxy(this.onWindowScroll, this);
+    $(window).scroll(scrollHandler);
+};
+
+MenuController.prototype.onWindowScroll = function(){
+    // Get container scroll position
+    var fromTop = $(window).scrollTop() + this.topMenuHeight;
+    
+    // Get id of current scroll item
+    var cur = this.scrollItems.map(function(){
+        if ($(this).offset().top < fromTop)
+            return this;
+    });
+    // Get the id of the current element
+    cur = cur[cur.length-1];
+    var id = cur && cur.length ? cur[0].id : '';
+   
+    if (this.lastId !== id) {
+        this.lastId = id;
+
+        // Set/remove active class
+        this.menuItems
+            .parent().removeClass('active')
+            .end().filter('[href=#'+id+']').parent().addClass('active');
+    }
+};
+
 var C = new SiteController();
+
+var M = new MenuController();
 
 //Make classes dispatchers.
 pubSub(DarknessMap);

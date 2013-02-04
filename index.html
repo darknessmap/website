@@ -36,8 +36,8 @@
                 <ul class="right">
                     <li><a href="#map" class="active">Home</a></li>
                     <li><a href="#page-about">About</a></li>
-                    <li><a href="#open-source">Os</a></li>
                     <li><a href="#page-legal">Legal</a></li>
+                    <li><a href="#page-open-source">Open Source</a></li>
                 </ul>           
             </nav>
         </div>
@@ -76,7 +76,7 @@
                 </div>
             </section>
             <section id="page-about" class="row mainContent">
-                <div class="eight mobile-four columns">
+                <div class="eight offset-by-two mobile-four columns">
                     <h3>About</h3>
                     <p>A project by <a href="http://www.goliatone.com">Emiliano Burgos</a> and <a href="http://www.genevievehoffman.com">Genevieve Hoffman</a>, conceived with <a href="http://www.39forks.com">Scott Wayne Indiana</a>, and <a href="http://runemadsen.com">Rune Madsen</a>.</p>
                     <p>We have all seen satellite images of planet Earth at night, but aside from expressing that cities are bright, or that nighttime power is primarily a first-world commodity, these images do not portray much practical information. The Darkness Map aims to communicate dark and light levels around New York City on a human scale.</p>
@@ -85,9 +85,20 @@
                 </div>
             </section>
             <section id="page-legal" class="row mainContent">
-                <div class="eight mobile-four columns">
+                <div class="eight offset-by-two mobile-four columns">
                     <h3>Legal</h3>
                     <p>The Darkness Map is an open-source project that uses crowd-sourced data to visualize the urban environment at night. The Darkness Map app provides a way for users to contribute to the Darkness Map visualization. The Darkness Map app does not maintain any personal information about users. The data users collect and send to our servers consists of a light level reading, timestamp, GPS coordinate, and session ID. There is no way to trace back to an individual or phone. By using the Darkness Map app users are contributing to an open-source project, and the data collected will be added to the Darkness Map database, and made available as an open source dataset. </p>
+                </div>
+            </section>
+            <section id="page-open-source" class="row mainContent">
+                <div class="eight offset-by-two mobile-four columns">
+                    <h3>Open Source</h3>
+                    <p>All code for the Darkness Map is open source and available to use under an MIT License. All of the code components of the Darkness Map are hosted on <a href="https://github.com/darknessmap">github</a>.
+                    <br/>Darkness Map code repositories include:</p>
+                    <p>Mobile app for Android - native Android/Java. The mobile app uses the phone camera preview as a light sensor. After receiving a GPS signal, the app captures the brightness of each frame, and sends this data to the Darkness Map server. The iPhone app is currently in development stage, and has not yet been submitted to the App Store. Future versions will have variable sampling rates -- for walking, biking and driving.</p>
+                    <p><a href="https://github.com/darknessmap/app-iphone">Mobile app for iPhone</a> - made with OpenFrameworks for iPhone and Objective-C. The mobile app uses the phone camera preview as a light sensor. After receiving a GPS signal, the app captures the brightness of each frame, and sends this data to the Darkness Map server. The Android app is currently a prototype, and available to download from the Darkness Map website if you navigate to the homepage on an Android device. Future versions will have variable sampling rates -- for walking, biking and driving.</p>
+                    <p><a href="https://github.com/darknessmap/data-collection-device">Arduino Data Collection Device</a> - basic electronics tutorial for building your own data logger. The Data Collection Device was the initial prototype for the Darkness Map, before we decided to make a mobile app as the data collection tool. These instructions go over how to connect an Arduino, GPS module, and light sensor, and how to save this data to an SD card. Currently, there is no way to integrate the data collected with the Darkness Map web-based visualization, but we are hoping to develop an upload system in the future. Currently, you can use make your own visualizations from the data saved to the CSV file, and I will be uploading code to demonstrate how to get started with that soon. Hopefully you can use this tutorial as the basis for other projects, and swap out the light sensor for other environmental sensors.</p>
+                    
                     <p>All code for the Darkness Map is open source and available to use under an MIT License.</p>
                     <p>Copyright (c) 2012-13 Emiliano Burgos and Genevieve Hoffman.<br/>
                     Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:<br/>
@@ -96,17 +107,20 @@
                 </div>
             </section>
         </div>
+        
+        <!-- footer -->
         <footer>
             <nav class="show-for-small">
-            <dl class="nice mobile vertical tabs">
-              <dd class="active"><a href="#vertical1">Home</a></dd>
-              <dd><a href="#vertical2">About</a></dd>
-              <dd><a href="#vertical3">Os</a></dd>
-              <dd><a href="#vertical3">Legal</a></dd>
-            </dl>
-        </nav>
+                <dl class="nice mobile vertical tabs">
+                  <dd class="active"><a href="#map">Home</a></dd>
+                  <dd><a href="#page-about">About</a></dd>
+                  <dd><a href="#page-legal">Legal</a></dd>
+                  <dd><a href="#page-open-source">Open Source</a></dd>
+                </dl>
+            </nav>
         </footer>
-
+        <!--@END footer -->
+        
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script-->
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.8.0.min.js"><\/script>')</script>
         <script src="js/vendor/leaflet/leaflet.js"></script>
