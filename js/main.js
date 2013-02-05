@@ -1,54 +1,21 @@
-$(document).ready(function() {
-    console.log('--------Go!!!!!');
-    /*
-    //TODO: Add cluster pluster
-    //https://github.com/Leaflet/Leaflet.markercluster
-    //Add full screen support 
-    //https://github.com/brunob/leaflet.fullscreen
-    */
-
-    /*
-    var popup = L.popup();
-
-    function onMapClick(e) {
-        console.log('You clicked the map at ' + e.latlng);
-        popup
-            .setLatLng(e.latlng)
-            .setContent('You clicked the map at ' + e.latlng.toString())
-            .openOn(D.map);
-    }
-
-    D.map.on('click', onMapClick);
-    
-*/
-    C.initialize();
-
-    D.initialize();
-
-    M.initialize();
-
-    //We could prob. just use socket instead of
-    //direct request.
-    D.doAPIRequest();
-
-    D.initializeSocket();
-
-    //TODO: Find the right events.
-    D.activityOn();
-
-    // D.subscribe('onActive',   C.proxy(C.onMapActive));
-    // D.subscribe('onInactive', C.proxy(C.onMapInactive));
-    //
-   
-});
- 
- //D.map = L.map('map').setView([37.78089, -122.41443], 13);
+/*
+ * G namespace.
+ * g.components holds classes that should be initialized on
+ * DOM ready.
+ *
+ * TODO: Build DI in here!
+ */
+var g = {};
+g.configs = {};
+g.components = {};
 
 //TODO: Load config file.
-var config = {
+var dConfig = {
     apiDomain:'178.79.145.84:8080',
     apiUrl:'http://{{apiDomain}}/api/darkness',
-    tileDomain:'darknessmap.com/tiles/sf',
+    // tileDomain:'tiles.mapbox.com/v3/goliatone.map-tf2bflzw',
+    tileDomain:'tiles.mapbox.com/v3/veev.OSMBright',
+    // tileDomain:'darknessmap.com/tiles/sf',
     tileUrl:'http://{{tileDomain}}/{z}/{x}/{y}.png',
     socketUrl:'http://{{apiDomain}}',
     throttle:30,
@@ -59,23 +26,41 @@ var config = {
         layer:{
             maxZoom:17,
             minZoom:14,
-            maxBounds:[[37.6694, -122.5882],[37.9498, -122.0814]]
+            // maxBounds:[[37.6694, -122.5882],[37.9498, -122.0814]]
+            maxBounds:[[33.8658, -83.5737],[34.0162, -83.2434]]
         },
         initZoom:15,
-        initPos:[37.78089, -122.41443]
+        // initPos:[37.78089, -122.41443]
+        initPos:[33.9509, -83.3965]
         // initPos:[37.887335736305,-122.26300486363]
     }
 };
 
-var DarknessMap = function DarknessMap(config){
+/**
+ * MapController handles all interaction with the map.
+ * It also takes care of the interaction with the node 
+ * service.
+ * 
+ */
+var MapController = function MapController(config){
     this.config   = config;
-    this.appName  = 'DarknessMap';
+    this.appName  = 'MapController';
 };
 
-
-
-DarknessMap.prototype.initialize = function(){
+MapController.prototype.initialize = function(){
     this.log('Initialize');
+    this.initializeMap();
+
+    this.doAPIRequest();
+
+    this.initializeSocket();
+
+    //TODO: Find the right events.
+    this.activityOn();
+}
+
+MapController.prototype.initializeMap = function(){
+    this.log('Initialize Map!!!');
 
     var config = this.config;
 
@@ -108,8 +93,8 @@ DarknessMap.prototype.initialize = function(){
     L.tileLayer(this.tileUrl, config.layer).addTo(this.map);
 };
 
-DarknessMap.prototype.initializeSocket = function(){
-
+MapController.prototype.initializeSocket = function(){
+    this.log('Initialize Socket');
     //Let create our socket connection.
     this.socket = io.connect( this.socketUrl );
 
@@ -125,36 +110,37 @@ DarknessMap.prototype.initializeSocket = function(){
     this.socket.emit('adduser',this.generateUsername());
 };
 
-DarknessMap.prototype.addSocketListener = function(topic, method){
+MapController.prototype.addSocketListener = function(topic, method){
+
     this.socket.on(topic, this.proxy(method));
 };
 ///////////
 //SOCKET.IO
 ///////////
-DarknessMap.prototype.onSign = function(state){
+MapController.prototype.onSign = function(state){
     this.log('signed data, ', state);
     this.connected = state;
 };
-DarknessMap.prototype.onDarkness = function(data){
+MapController.prototype.onDarkness = function(data){
     console.log('on darkness: ');
     // D.onData(data);
 };
 
 
-DarknessMap.prototype.onDarknessUpdate = function(data){
+MapController.prototype.onDarknessUpdate = function(data){
     console.log('on darkness update',data);
     var item = $.parseJSON(data);
     // D.addItem(item);
 };
 
-DarknessMap.prototype.onUserUpdate = function (data) {
+MapController.prototype.onUserUpdate = function (data) {
     console.log('on connected ',data);
     //this.socket.emit('my other event', { my: 'data' });
 };
 
 //TODO: Include pagination to data pull. Also, feed in a loc, and
 //      query near items, so we don't get all the mdb.
-DarknessMap.prototype.doAPIRequest = function doAPIRequest(page, size){
+MapController.prototype.doAPIRequest = function doAPIRequest(page, size){
     this.log(' make api request');
     var ajax = {
         url:this.apiUrl,
@@ -165,7 +151,7 @@ DarknessMap.prototype.doAPIRequest = function doAPIRequest(page, size){
     $.ajax(ajax);
 };
 
-DarknessMap.prototype.onAPIData = function onAPIData(data){
+MapController.prototype.onAPIData = function onAPIData(data){
     //Make object from server's response.
     if(!data) return this.onError();
     
@@ -174,12 +160,14 @@ DarknessMap.prototype.onAPIData = function onAPIData(data){
         data = $.parseJSON(data);
 
     this.log('We have data, total: ', data.length);
-
+    this.log('------');
+    this.log(data[3]);
+    this.log('------');
     //Throttle data rendering, dont choke the browser:
-    DarknessMap.throttle(data, this.addItem, this, this.config.throttle);
+    MapController.throttle(data, this.addItem, this, this.config.throttle);
 };
 
-DarknessMap.prototype.addItem = function(item){
+MapController.prototype.addItem = function(item){
     //TODO: Merge config object.
     this.color || (this.color = this.config.fillColor);
     var loc = item.loc;
@@ -194,7 +182,7 @@ DarknessMap.prototype.addItem = function(item){
     }).addTo(this.map);
 };
 
-DarknessMap.prototype.onError = function(e){
+MapController.prototype.onError = function(e){
     //TODO: Implement log error system.
     this.log(e);
 };
@@ -202,33 +190,33 @@ DarknessMap.prototype.onError = function(e){
 ////////////////
 //VIEW HANDLING
 ////////////////
-DarknessMap.prototype.activityOn = function(){
+MapController.prototype.activityOn = function(){
     this.log('on activity on');
-
+    var self = this;
     var activityHandler = function(){
-        D.log('onActivityHandler');
-        D.map.on('blur', registerHandler);
-        D.map.off('mousedown', activityHandler);
-        D.publish('onActive');
+        self.log('onActivityHandler');
+        self.map.on('blur', registerHandler);
+        self.map.off('mousedown', activityHandler);
+        self.publish('onActive');
     };
 
     var registerHandler = function(){
-        D.log('onRegisterHandler');
-        D.map.off('blur', registerHandler);
-        D.map.on('mousedown', activityHandler);
-        D.publish('onInactive');
+        self.log('onRegisterHandler');
+        self.map.off('blur', registerHandler);
+        self.map.on('mousedown', activityHandler);
+        self.publish('onInactive');
     };
     // D.map.on('mousedown', activityHandler);
     registerHandler();
 };
 
 
-DarknessMap.prototype.log = function(){
+MapController.prototype.log = function(){
     console.log.apply(console, [this.appName+':'+arguments.callee.caller.name].concat(Array.prototype.slice.call(arguments,0)));
 };
 
-DarknessMap.throttle = function(array, process, context, index){
-    var buffer = DarknessMap.throttle.buffer;
+MapController.throttle = function(array, process, context, index){
+    var buffer = MapController.throttle.buffer;
     setTimeout(function(){
         var item, i = index;
         while( i-- ) {
@@ -237,14 +225,14 @@ DarknessMap.throttle = function(array, process, context, index){
         }
         
         if(array.length > 0){
-            DarknessMap.throttle.call(this, array, process, context, index);
+            MapController.throttle.call(this, array, process, context, index);
         }
         
     }, buffer);
 };
-DarknessMap.throttle.buffer = 40;
+MapController.throttle.buffer = 40;
 
-DarknessMap.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, targetStr, targetEnd)
+MapController.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, targetStr, targetEnd)
 {
     var baseRangeFull = rangeEnd - rangeStr;
     var baseFinalValue, targetCurrentValue;
@@ -260,7 +248,7 @@ DarknessMap.prototype.simpleInterpolation = function(value, rangeStr, rangeEnd, 
 };
              
  
-DarknessMap.prototype.adjustBrightness = function(rgb, brite) {
+MapController.prototype.adjustBrightness = function(rgb, brite) {
     var r = Math.max(Math.min(((rgb >> 16) & 0xFF) + brite, 255), 0);
     var g = Math.max(Math.min(((rgb >> 8) & 0xFF) + brite, 255), 0);
     var b = Math.max(Math.min((rgb & 0xFF) + brite, 255), 0);
@@ -268,7 +256,7 @@ DarknessMap.prototype.adjustBrightness = function(rgb, brite) {
     return (r << 16) | (g << 8) | b;
 };
 
-DarknessMap.prototype.stringReplace =function(template, data){
+MapController.prototype.stringReplace =function(template, data){
     function replaceFn() {
         var prop = arguments[1];
         return (prop in data) ? data[prop] : '';
@@ -281,17 +269,24 @@ DarknessMap.prototype.stringReplace =function(template, data){
 
 //TODO: Implement gClass inheritance, and mixin
 //pub sub.
-DarknessMap.prototype.proxy = function(func){
+MapController.prototype.proxy = function(func){
     var self = this;
     return(function(){
         return func.apply(self, arguments);
     });
 };
 
-DarknessMap.prototype.generateUsername = function(){
+MapController.prototype.generateUsername = function(){
     return this.config.baseUserName + new Date().valueOf();
 };
 
+
+/*
+ * Mixin. 
+ * TODO: Move into utility package, 
+ * make base Module and include there.
+ * All Modules should have this func.
+ */
 var pubSub = function(Instance){
     var o = $({});
     o.subscribe = function() {
@@ -316,18 +311,20 @@ var pubSub = function(Instance){
 
 
 
-//App should initialize Map, then hookup controller and
-//views. We take one step at a time, and refactor.
-//The goal is there, just follow through.
-var D = new DarknessMap(config);
 
-//
+
+/**
+ * SiteController handles site specific
+ * interaction and data.
+ * 
+ */
 var SiteController = function(){
     this.className = 'SiteController';
 };
 
 SiteController.prototype.initialize = function()
 {
+    this.log('Initialize SiteController');
     //we initialize the content.
     var headerHeight = $('.top-bar', 'nav').height();
     $('.dM .fixed-ghost').height(headerHeight);
@@ -337,13 +334,26 @@ SiteController.prototype.onMapActive = function onMapActive(){
     this.log(' make map full size');
     //
     $('#map').css({height:'100%', 'z-index':99999});
-    D.map.invalidateSize(false);//.panTo(e.latlng);
+    this.forceSizeInvalidation();
 };
 
 SiteController.prototype.onMapInactive = function onMapInactive(){
     this.log(' make map regular size');
     $('#map').css({height:'490px','z-index':0});
-    D.map.invalidateSize(false);
+    this.forceSizeInvalidation();
+};
+
+SiteController.prototype.forceSizeInvalidation = function(){
+    //TODO: How do we remove this depencency?! 
+    //Right now the MapController instance is harcoded AND
+    //accessed through the global scope :(
+    this.map.invalidateSize(false);
+    
+    this.publish('SiteController:invalidateMap', false);
+};
+
+SiteController.prototype.setMap = function(map){
+    this.map = map;
 };
 
 //Common methods, inherit!!
@@ -358,10 +368,11 @@ SiteController.prototype.proxy = function(func){
 };
 
 var MenuController = function(){
-
-    };
+    this.className = 'MenuController';
+};
 
 MenuController.prototype.initialize = function(){
+    console.log('Initialize MenuController');
     this.lastId = null;
     this.topMenu = $('#top-menu');
     this.topMenuHeight = this.topMenu.outerHeight() + 15;
@@ -398,6 +409,10 @@ MenuController.prototype.onWindowScroll = function(){
     // Get container scroll position
     var fromTop = $(window).scrollTop() + this.topMenuHeight;
     
+    //TODO: Check for boundaries.
+    //Mac, chrome et all will allow you to scroll beyond
+    //page boundaries, so we should check that we are in range.
+
     // Get id of current scroll item
     var cur = this.scrollItems.map(function(){
         if ($(this).offset().top < fromTop)
@@ -417,10 +432,84 @@ MenuController.prototype.onWindowScroll = function(){
     }
 };
 
-var C = new SiteController();
 
-var M = new MenuController();
 
-//Make classes dispatchers.
-pubSub(DarknessMap);
-pubSub(SiteController);
+/**
+ * Application instance
+ */
+var App = g.App = function(){
+    App.instances = {};
+};
+
+App.prototype.mixPubsub = pubSub;
+
+
+App.prototype.run = function(){
+    console.log('App run');
+    //Wire app components.
+    $(document).ready( $.proxy(this.boostrap, this) );
+};
+
+App.prototype.boostrap = function(){
+    console.log('App boostrap');
+    this.wireComponents();
+    this.injectDependencies();
+}
+/**
+ * Here we wire all components. We should really 
+ * do some sort of DI wiring. 
+ * TODO: Implement low level DI...
+ */
+App.prototype.wireComponents = function(){
+    console.log('ON DOCUMENT READY');
+    var controller, ControllerClass, config;
+
+    for( var ControllerId in g.components){
+        if(! g.components.hasOwnProperty(ControllerId)) continue;
+        console.log('Controller ID: ', ControllerId);
+        ControllerClass = g.components[ControllerId];
+        
+        this.mixPubsub(ControllerClass);
+
+        if(g.configs.hasOwnProperty(ControllerId)) config = g.configs[ControllerId];
+        else config = {};
+
+        controller = new ControllerClass(config);
+        App.instances[ControllerId] = controller;
+        
+    }
+
+    for(ControllerId in g.components){
+        controller = App.instances[ControllerId];
+        if('initialize' in controller &&
+           typeof controller.initialize === 'function') controller.initialize();
+    }
+};
+
+App.prototype.injectDependencies = function(){
+    console.log('injectDependencies');
+    var mapController  = App.instances['MapController'];
+    var siteController = App.instances['SiteController'];
+    siteController.setMap(mapController.map);
+};
+
+/*
+com.createSetter = function(name){
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    return 'set' + name.replace(/-([a-z])/g, function (g) { return g[1].toUpperCase() });
+
+}
+ */
+
+/*
+ * Map actual components.
+ */
+g.components.MapController  = MapController;
+g.components.SiteController = SiteController;
+g.components.MenuController = MenuController;
+
+g.configs.MapController = dConfig;
+
+var A = new g.App();
+A.run();
+

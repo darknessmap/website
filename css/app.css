@@ -48,6 +48,11 @@
 	padding-top: 20px;
 	padding-bottom: 43px;
 }
+
+.dM .top-bar ul li.active a {
+	font-weight: bold;
+}
+
 .dM h1 {
 	line-height: 1.2;
 	letter-spacing:-2.2px;
@@ -108,5 +113,7 @@
 /* -----------------------------------------
    Page Name 2
 ----------------------------------------- */
-
+#footer{
+	margin-top: 60px;
+}
 
