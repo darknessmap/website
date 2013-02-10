@@ -30,7 +30,7 @@ The Darkness Map is an open-source project that uses crowd-sourced data to visua
 All code for the Darkness Map is open source and available to use under an MIT License. All of the code components of the Darkness Map are hosted on [github][1].   
 Darkness Map code repositories include:
 
-Mobile app for Android - native Android/Java. The mobile app uses the phone camera preview as a light sensor. After receiving a GPS signal, the app captures the brightness of each frame, and sends this data to the Darkness Map server. The iPhone app is currently in development stage, and has not yet been submitted to the App Store. Future versions will have variable sampling rates -- for walking, biking and driving.
+[Mobile app for Android][16] - native Android/Java. The mobile app uses the phone camera preview as a light sensor. After receiving a GPS signal, the app captures the brightness of each frame, and sends this data to the Darkness Map server. The iPhone app is currently in development stage, and has not yet been submitted to the App Store. Future versions will have variable sampling rates -- for walking, biking and driving.
 
 [Mobile app for iPhone][2] - made with OpenFrameworks for iPhone and Objective-C. The mobile app uses the phone camera preview as a light sensor. After receiving a GPS signal, the app captures the brightness of each frame, and sends this data to the Darkness Map server. The Android app is currently a prototype, and available to download from the Darkness Map website if you navigate to the homepage on an Android device. Future versions will have variable sampling rates -- for walking, biking and driving.
 
@@ -68,3 +68,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  [13]: http://mapbox.com/tilemill/
  [14]: https://github.com/darknessmap/server
  [15]: https://github.com/darknessmap/client
+ [16]: https://github.com/darknessmap/app-android
