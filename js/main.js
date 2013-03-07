@@ -80,15 +80,15 @@ MapController.prototype.initializeMap = function(){
     var fullScreen = new L.Control.FullScreen(); 
     this.map.addControl(fullScreen);
 
-    this.map.on('enterFullscreen', function(){
-        if(window.console) window.console.log('enterFullscreen');
-        C.onMapActive();
-    });
+    // this.map.on('enterFullscreen', function(){
+    //     if(window.console) window.console.log('enterFullscreen');
+    //     C.onMapActive();
+    // });
 
-    this.map.on('exitFullscreen', function(){
-        if(window.console) window.console.log('exitFullscreen');
-        C.onMapInactive();
-    });
+    // this.map.on('exitFullscreen', function(){
+    //     if(window.console) window.console.log('exitFullscreen');
+    //     C.onMapInactive();
+    // });
 
     L.tileLayer(this.tileUrl, config.layer).addTo(this.map);
 };
@@ -490,6 +490,17 @@ App.prototype.injectDependencies = function(){
     console.log('injectDependencies');
     var mapController  = App.instances['MapController'];
     var siteController = App.instances['SiteController'];
+    
+    mapController.map.on('enterFullscreen', function(){
+        if(window.console) window.console.log('enterFullscreen');
+        siteController.onMapActive();
+    });
+
+    mapController.map.on('exitFullscreen', function(){
+        if(window.console) window.console.log('exitFullscreen');
+        siteController.onMapInactive();
+    });
+
     siteController.setMap(mapController.map);
 };
 
