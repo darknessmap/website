@@ -168,9 +168,21 @@ MapController.prototype.onAPIData = function onAPIData(data){
 };
 
 MapController.prototype.addItem = function(item){
+    //TODO Remove this.
+    //HACK The iphone app logs location with lat/lon in the wrong
+    //order :( a quick fix for now is to check for values and reorder.
+    var loc = item.loc;
+    // initPos:[lat:33.9509, lon:-83.3965]
+    if(loc.lat < loc.lon){
+        var lat = loc.lat;
+        var lon = loc.lon;
+        loc.lat = lon;
+        loc.lon = lat;
+    }
+
     //TODO: Merge config object.
     this.color || (this.color = this.config.fillColor);
-    var loc = item.loc;
+    // var loc = item.loc;
     var radius  = this.simpleInterpolation(item.payload, 0, 255, 8, 32);
     var opacity = 1 - this.simpleInterpolation(item.payload, 0,255,0.2,1);
     L.circle([loc.lat, loc.lon], radius, {
