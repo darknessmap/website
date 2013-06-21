@@ -14,7 +14,7 @@ var dConfig = {
     apiDomain:'178.79.145.84:8080',
     apiUrl:'http://{{apiDomain}}/api/darkness',
     // tileDomain:'tiles.mapbox.com/v3/goliatone.map-tf2bflzw',
-    tileDomain:'tiles.mapbox.com/v3/veev.OSMBright',
+    tileDomain:'a.tiles.mapbox.com/v3/veev.OSMBright',
     // tileDomain:'darknessmap.com/tiles/sf',
     tileUrl:'http://{{tileDomain}}/{z}/{x}/{y}.png',
     socketUrl:'http://{{apiDomain}}',
